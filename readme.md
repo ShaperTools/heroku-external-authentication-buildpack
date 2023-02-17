@@ -1,3 +1,57 @@
+Forked from [heroku-buildpack-nginx](https://github.com/heroku/heroku-buildpack-nginx). All this adds is the auth-request module, a default nginx.conf.erb, and an env var for the socket to use.
+
+This buildpack adds an nginx server in front of your heroku app with a nginx config that first redirects requests to the external authentication service of your choice.
+
+If that check passes, your request goes through.
+
+If that check fails, you're redirected to your external authentication source for verification.
+
+To use it, make the following changes:
+
+1) Add an `EXTERNAL_AUTHENTICATION_URL` to your app's environment variables
+
+```
+heroku config:set EXTERNAL_AUTHENTICATION_URL=http://my-authentication-source.com
+```
+
+2) Add the buildpack with
+
+```bash
+heroku buildpacks:add https://github.com/ShaperTools/heroku-external-authentication-buildpack
+```
+
+3) Modify your Procfile to add `bin/start-nginx` before the command to start your application
+
+i.e. from
+```
+web: yarn start
+```
+
+to
+```
+web: bin/start-nginx yarn start
+```
+
+4) Modify your app to listen to the `SOCKET` env var (instead of the PORT env var), and touch/write to the `APP_INITIALIZED_FILE` env var to indicate the app is ready to receive traffic.
+
+express example
+```javascript
+app = express();
+
+...
+
+const socket = process.env.SOCKET || process.env.PORT;
+app.listen(socket, () => {
+  if (socket === process.env.SOCKET) {
+    fs.writeFileSync(process.env.APP_INITIALIZED_FILE, "true");
+  }
+});
+```
+
+The original readme from heroku-buildpack-nginx follows:
+
+---
+
 # Heroku Buildpack: NGINX
 
 Nginx-buildpack vendors NGINX inside a dyno and connects NGINX to an app server via UNIX domain sockets.
