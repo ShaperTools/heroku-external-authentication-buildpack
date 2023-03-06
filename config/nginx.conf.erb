@@ -48,7 +48,7 @@ http {
 			proxy_pass                                  <%= ENV["EXTERNAL_AUTHENTICATION_URL"] %>/;
 		}
 
-		location /_external-authentication-redirect {
+		location /_external-authentication-Sp {
 			internal;
 
 			proxy_set_header X-Initial-Request          $scheme://$host$request_uri;
@@ -61,7 +61,7 @@ http {
 		location / {
 			<% if ENV["EXTERNAL_AUTHENTICATION_URL"] %>
 			auth_request /_external-authentication-check;
-			error_page 401 = /_external-authentication-redirect;
+			error_page 401 = /_external-authentication-Sp;
 			<% end %>
 
 			if ($http_x_forwarded_proto != "https") {
