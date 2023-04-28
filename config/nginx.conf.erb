@@ -24,6 +24,8 @@ http {
 	default_type application/octet-stream;
 	sendfile on;
 
+	resolver 1.1.1.1 valid=10s;
+
 	# Must read the body in 5 seconds.
 	client_body_timeout 5;
 
@@ -40,21 +42,23 @@ http {
 		location = /_external-authentication-check {
 			internal;
 
+			set $external_auth_url <%= ENV["EXTERNAL_AUTHENTICATION_URL"] %>/;
 			client_max_body_size                        200m;
 			proxy_set_header X-Forwarded-For            $proxy_add_x_forwarded_for;
 			proxy_set_header Content-Length             "";
 			proxy_pass_request_body                     off;
 
-			proxy_pass                                  <%= ENV["EXTERNAL_AUTHENTICATION_URL"] %>/;
+			proxy_pass                                  $external_auth_url;
 		}
 
 		location /_external-authentication-Sp {
 			internal;
 
+			set $external_auth_url <%= ENV["EXTERNAL_AUTHENTICATION_URL"] %>;
 			proxy_set_header X-Initial-Request          $scheme://$host$request_uri;
 			proxy_set_header X-Forwarded-For            $proxy_add_x_forwarded_for;
 
-			proxy_pass                                  <%= ENV["EXTERNAL_AUTHENTICATION_URL"] %>;
+			proxy_pass                                  $external_auth_url;
 		}
 		<% end %>
 
